@@ -1,126 +1,153 @@
-   //draw normal humans
+//draw normal humans
 
+var healthy_icon = new Image();
+healthy_icon.src = "./images/normal.png";
+var infected_icon = new Image();
+infected_icon.src = "./images/infected.png";
 
-   var healthy_icon = new Image();
-   healthy_icon.src = "./images/normal.png";
-   var infected_icon = new Image();
-   infected_icon.src = "./images/infected.png";
+function Human(id, loc, space, probability, behaviour) {
+  jssim.SimEvent.call(this);
+  this.id = id;
+  this.agentLocation = loc;
+  this.color = "#ff8800";
+  this.name = "Human_" + behaviour.type;
+  this.desiredLocation = null;
+  this.suggestedLocation = null;
+  this.steps = 0;
+  this.space = space;
+  space.updateAgent(this, loc.x, loc.y);
+  this.type = "Human";
+  this.infected = false;
+  //new features
+  this.probability = probability;
+  this.contactProbability = 0;
+  this.behaviour = behaviour; //Obj
+  this.probabilityList = []; //each probability will accumilate
+  this.probabilityList.push(probability);
+  this.contactList = new Map();
+  this.mInfectiousParam = new InfectiousParam(20); // obj
+  this.mProbabilityCalculator = new ProbabilityCalculator("normal", 0.01, 0.05);
+}
 
-   function Human(id, loc, space, probability, behaviour, maxX, minX) {
-    jssim.SimEvent.call(this);
-    this.id = id;
-    this.agentLocation = loc;
+Human.prototype.setContactProbability = function (probability) {
+  this.contactProbability = probability;
+};
+
+Human.prototype.getContactProbability = function () {
+  return this.contactProbability;
+};
+
+Human.prototype.setProbability = function (probability) {
+  this.probability = probability;
+};
+
+Human.prototype.getProbability = function () {
+  return this.probability;
+};
+
+Human.prototype.setBehaviour = function (behaviour) {
+  //type= Quarantine, Normal, etc
+  this.behaviour = {
+    type: "",
+    Interaction: "",
+    Safety: "",
+    Relaxing: "",
+  };
+};
+
+Human.prototype.getBehaviour = function () {
+  return this.behaviour;
+};
+
+Human.prototype.setContactList = function (timeSlot, matchProbalitySet) {
+  this.contactList.set(timeSlot, matchProbalitySet);
+};
+
+Human.prototype.getContactList = function () {
+  return this.contactList;
+};
+
+Human.prototype = Object.create(jssim.SimEvent.prototype);
+
+Human.prototype.setInfected = function (infected) {
+  this.infected = infected;
+  if (infected) {
+    this.color = "#5533ff";
+  } else {
     this.color = "#ff8800";
-    this.name = "Human_" + behaviour.type;
-    this.desiredLocation = null;
-    this.suggestedLocation = null;
-    this.steps = 0;
-    this.space = space;
-    space.updateAgent(this, loc.x, loc.y);
-    this.type = "Human";
-    this.infected = false;
-    //new features
-    this.probability = probability;
-    this.contactProbability = 0;
-    this.behaviour = behaviour; //Obj
-    this.probabilityList = []; //each probability will accumilate
-    this.contactList = [];
-    this.maxX= maxX || 0
-    this.minX= minX || 0
-  };
+  }
+};
 
-  Human.prototype.setMaxX = function(maxX) {
-    this.maxX = maxX;
-  };
-  Human.prototype.getMaxX = function() {
-    return this.maxX;
-  };
+Human.prototype.setName = function (name) {
+  this.name = name;
+};
 
+Human.prototype.isInfected = function () {
+  return this.infected;
+};
 
-  Human.prototype.setMinX = function(minX) {
-    this.minX = minX;
-  };
-  Human.prototype.getMinX = function() {
-    return this.minX;
-  };
+Human.prototype.setContacts = function (timestamp, mysteriousObjects) {
+  this.addContactList(timestamp, mysteriousObjects);
+
+  // const result = trees.find((tree:any) => tree.key === timestamp - this.mInfectiousParam.mLatentPeriod );
+
+  /* for (var i = 0; i < mysteriousObjects.length; i++) 
+    {
+      obj= mysteriousObjects[i]
+      if(obj.type!="human") continue;
+      
+      prob = obj.getProbability()
+      if(this.probability >= prob) continue;
 
 
-  Human.prototype.setContactProbability = function(probability) {
-    this.contactProbability = probability;
-  };
+    }*/
+};
 
-  Human.prototype.getContactProbability = function() {
-    return this.contactProbability;
-  };
+Human.prototype.calcDecayingProbability = function (deltaTime) {
+  return 0.0;
+};
 
-  Human.prototype.setProbability = function(probability) {
-    this.probability = probability;
-  };
+Human.prototype.calculateLatentProb = function (timestamp) {
+  value = 0.0;
 
-  Human.prototype.getProbability = function() {
-    return this.probability;
-  };
+  latentValue = timestamp - this.mInfectiousParam.getLatentPeriod();
 
-  Human.prototype.setBehaviour = function(behaviour) {
-    //type= Quarantine, Normal, etc
-    this.behaviour = {
-      type: behaviour.type,
-      Interaction: behaviour.interaction,
-      Safety: behaviour.safety,
-      Relaxing: behaviour.relaxing
-    };
-  };
+  if (this.contactList.has(latentValue)) {
+    element = this.contactList.get(latentValue);
+    value = this.mProbabilityCalculator.calculateInfectous(
+      this.probabilityList,
+      element,
+      latentValue
+    );
+  }
 
-  Human.prototype.getBehaviour = function() {
-    return this.behaviour;
-  };
+  //this.mInfectiousParam
+  return value;
+};
 
-  Human.prototype.setContactList = function(
-    contactPerson,
-    timeSlot
-  ) {
-    this.contactList = this.contactList.push({
-      key: timeSlot,
-      value: {
-        key: contactPerson.contactPersonId,
-        probality: contactPerson.contactPersonProbality
-      }
-    });
-  };
+Human.prototype.addContactList = function (timestamp, mysteriousObjects) {
+  //this.setContactList(timestamp,mysteriousObjects)
+  this.contactList.set(timestamp, mysteriousObjects);
+};
 
-  Human.prototype.getContactList = function() {
-    return this.contactList;
-  };
-
-  Human.prototype = Object.create(jssim.SimEvent.prototype);
-
-  Human.prototype.setInfected = function(infected) {
-    this.infected = infected;
-    if (infected) {
-      this.color = "#5533ff";
-    } else {
-      this.color = "#ff8800";
-    }
-  };
-
-  Human.prototype.setName = function(name) {
-    this.name = name;
-  };
-
-  Human.prototype.isInfected = function() {
-    return this.infected;
-  };
-
-
-  Human.prototype.draw = function(context, pos) {
+/*Human.prototype.draw = function(context, pos) {
     context.beginPath();
     context.arc(pos.x, pos.y, 50, 0, 2 * Math.PI);
     context.stroke();
-    if (this.infected) {
+    if (true) {
       context.font = "12px serif";
-      context.strokeStyle = "#FF0000";
+      if(this.probability>.8)
+        context.strokeStyle = "#FF0000";
+      else if(this.probability>.6)
+        context.strokeStyle = "#880000";
+      else if(this.probability>.4)
+        context.strokeStyle = "#220000";
+      else
+        context.strokeStyle = "#0000FF";
+      
       context.strokeText("infected", pos.x - 12, pos.y);
       context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+      context.strokeText(this.probability, pos.x - 12, pos.y - 10);
     } else {
       context.drawImage(healthy_icon, pos.x, pos.y, 20, 40);
       context.strokeStyle = "#0000FF";
@@ -129,3 +156,4 @@
       context.strokeText(this.probability, pos.x - 12, pos.y - 10);
     }
   };
+  */
