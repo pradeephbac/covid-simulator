@@ -311,7 +311,7 @@ var jssim = jssim || {};
             if(!events[i].update){
                 console.log('event does not define update(deltaTime) method!!!');
             } else {
-                events[i].update(deltaTime);
+                events[i].update(current_time);
             }
         }
         
