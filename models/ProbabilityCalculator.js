@@ -33,15 +33,15 @@ ProbabilityCalculator.prototype.calculateInfectousIndividual = function (
   probabilityMine,
   probabilyOther
 ) {
-  console.log(" probability other " + probabilyOther);
-  console.log(" probobility mine " + probabilityMine);
+  //console.log(" probability other " + probabilyOther);
+  //console.log(" probobility mine " + probabilityMine);
   if (probabilityMine > probabilyOther) {
     return 0.0;
   }
 
   value = (probabilyOther - probabilityMine) * this.infectiousRate;
 
-  console.log("probablility " + value);
+  //console.log("probablility " + value);
 
   return value;
 };

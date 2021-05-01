@@ -293,10 +293,11 @@
 
       // healing probability;
       decay_prob = this.calcDecayingProbability(deltaTime);
-      console.log(prob);
+      //console.log(prob);
       this.probability += prob - decay_prob;
       this.probabilityList.push(this.probability);
     }
+    binUpdate(this.probability);
 
     this.steps--;
     if (this.desiredLocation == null || this.steps <= 0) {
@@ -429,6 +430,14 @@
 
   var space = new jssim.Space2D();
 
+  function binUpdate(probability) {
+    let index = Math.floor(probability / 0.04);
+    bins.set(index, bins.get(index) + 1);
+    //console.log("bin log  : index ", index);
+  }
+
+  space.bins = bins;
+
   function reset() {
     scheduler.reset();
     space.reset();
@@ -496,5 +505,8 @@
       NUM_HUMANS - INFECTED_COUNT;
     document.getElementById("simTime").value =
       "Simulation Time: " + scheduler.current_time;
+    for (let i = 0; i < 25; i++) {
+      bins.set(i, 0);
+    }
   }, 50);
 })();
