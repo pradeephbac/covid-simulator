@@ -6,7 +6,7 @@
    var infected_icon = new Image();
    infected_icon.src = "./images/infected.png";
 
-   function Human(id, loc, space, probability, behaviour) {
+   function Human(id, loc, space, probability, behaviour, maxX, minX) {
     jssim.SimEvent.call(this);
     this.id = id;
     this.agentLocation = loc;
@@ -25,6 +25,23 @@
     this.behaviour = behaviour; //Obj
     this.probabilityList = []; //each probability will accumilate
     this.contactList = [];
+    this.maxX= maxX || 0
+    this.minX= minX || 0
+  };
+
+  Human.prototype.setMaxX = function(maxX) {
+    this.maxX = maxX;
+  };
+  Human.prototype.getMaxX = function() {
+    return this.maxX;
+  };
+
+
+  Human.prototype.setMinX = function(minX) {
+    this.minX = minX;
+  };
+  Human.prototype.getMinX = function() {
+    return this.minX;
   };
 
 
@@ -47,10 +64,10 @@
   Human.prototype.setBehaviour = function(behaviour) {
     //type= Quarantine, Normal, etc
     this.behaviour = {
-      type: "",
-      Interaction: "",
-      Safety: "",
-      Relaxing: ""
+      type: behaviour.type,
+      Interaction: behaviour.interaction,
+      Safety: behaviour.safety,
+      Relaxing: behaviour.relaxing
     };
   };
 
@@ -59,12 +76,15 @@
   };
 
   Human.prototype.setContactList = function(
-    matchProbalitirySet,
+    contactPerson,
     timeSlot
   ) {
     this.contactList = this.contactList.push({
       key: timeSlot,
-      value: matchProbalitirySet
+      value: {
+        key: contactPerson.contactPersonId,
+        probality: contactPerson.contactPersonProbality
+      }
     });
   };
 

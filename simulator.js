@@ -4,7 +4,7 @@
     var YMIN = 0;
     var YMAX = 800;
 
-    var bw = XMAX;
+    var bw = XMAX/2;
     var bh = YMAX;
     //padding around grid
     var p = 5;
@@ -25,7 +25,7 @@
     var INFECTION_DISTANCE_SQUARED =
       INFECTION_DISTANCE * INFECTION_DISTANCE;
 
-    var NUM_HUMANS = 15;
+    var NUM_HUMANS = 5;
     var NUM_GOODS = 0;
     var NUM_EVILS = 1;
 
@@ -296,18 +296,42 @@ if (this.isInfected()) {
 
 this.steps--;
 if (this.desiredLocation == null || this.steps <= 0) {
+  
   this.desiredLocation = new jssim.Vector2D(
     (Math.random() - 0.5) * ((XMAX - XMIN) / 5 - DIAMETER) +
       this.agentLocation.x,
     (Math.random() - 0.5) * ((YMAX - YMIN) / 5 - DIAMETER) +
       this.agentLocation.y
   );
+
+
+
+
+/*
+
+ if(randomSide){
+            //loc = new jssim.Vector2D( Math.random() * (XMAX/2 - XMIN - DIAMETER) + XMIN + DIAMETER / 2,  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+            
+            loc = new jssim.Vector2D( getRandomArbitrary(0, (XMAX/2 - DIAMETER )),  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+          
+            randomSide = false;
+          }else{
+            loc = new jssim.Vector2D(  getRandomArbitrary( (XMAX/2 + DIAMETER) , (XMAX - DIAMETER )),  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+            randomSide = true;
+          }
+
+*/
+
+
+
+
   this.steps = 50 + Math.floor(Math.random() * 50);
 }
-
-var dx = this.desiredLocation.x - this.agentLocation.x;
-var dy = this.desiredLocation.y - this.agentLocation.y;
-
+// this.desiredLocation.x > this.maxX
+if(true){
+  var dx = this.desiredLocation.x - this.agentLocation.x;
+  var dy = this.desiredLocation.y - this.agentLocation.y;
+  
 var temp = Math.sqrt(dx * dx + dy * dy);
 if (temp < 1) {
   this.steps = 0;
@@ -338,6 +362,9 @@ if (
     this.agentLocation.y
   );
 }
+}
+
+
 };
 
 Human.prototype.draw = function(context, pos) {
@@ -394,6 +421,7 @@ if (this.infected) {
     }
 
     function acceptablePosition(agent, location, space) {
+    
       if (
         location.x < DIAMETER / 2 ||
         location.x > XMAX - XMIN - DIAMETER / 2 ||
@@ -415,15 +443,33 @@ if (this.infected) {
     }
 
     function drawBoard(context) {
-      for (var x = 0; x <= bw; x += 10) {
-        context.moveTo(0.5 + x + p, p);
-        context.lineTo(0.5 + x + p, bh + p);
-      }
+      // for (var x = 0; x <= bw; x += 10) {
+      //   context.moveTo(0.5 + x + p, p);
+      //   context.lineTo(0.5 + x + p, bh + p);
+      // }
 
       for (var x = 0; x <= bh; x += 10) {
         context.moveTo(p, 0.5 + x + p);
         context.lineTo(bw + p, 0.5 + x + p);
       }
+
+      context.strokeStyle = "#cccccc";
+      context.stroke(); 
+    }
+
+
+    function drawBoard2(context){
+
+
+      for (var x = bw; x <= XMAX; x += 10) {
+        context.moveTo(0.5 + x + p, p);
+        context.lineTo(0.5 + x + p, bh + p);
+      }
+
+    //  for (var x = bw; x <= YMAX; x += 10) {
+    //     context.moveTo(p, 0.5 + x + p);
+    //     context.lineTo(bw + p, 0.5 + x + p);
+    //   }
 
       context.strokeStyle = "#cccccc";
       context.stroke();
@@ -433,10 +479,15 @@ if (this.infected) {
 
     var space = new jssim.Space2D();
 
+    function getRandomArbitrary(min, max) {
+      return Math.random() * (max - min) + min;
+  }
+
+
     function reset() {
       scheduler.reset();
       space.reset();
-
+      var randomSide = true
       for (var x = 0; x < NUM_HUMANS + NUM_GOODS + NUM_EVILS; x++) {
         var dx = Math.floor(Math.random() * 10) - 5;
         var dy = Math.floor(Math.random() * 10) - 5;
@@ -444,13 +495,26 @@ if (this.infected) {
         var loc = null;
         var agent = null;
         var times = 0;
+        
         while (loc == null || !acceptablePosition(agent, loc, space)) {
-          loc = new jssim.Vector2D(
-            Math.random() * (XMAX - XMIN - DIAMETER) + XMIN + DIAMETER / 2,
-            Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2
-          );
+          //loc = new jssim.Vector2D( Math.random() * (XMAX - XMIN - DIAMETER) + XMIN + DIAMETER / 2,  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+         
+          if(randomSide){
+            //loc = new jssim.Vector2D( Math.random() * (XMAX/2 - XMIN - DIAMETER) + XMIN + DIAMETER / 2,  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+            
+            loc = new jssim.Vector2D( getRandomArbitrary(0, (XMAX/2 - DIAMETER )),  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+          
+            randomSide = false;
+          }else{
+            loc = new jssim.Vector2D(  getRandomArbitrary( (XMAX/2 + DIAMETER) , (XMAX - DIAMETER )),  Math.random() * (YMAX - YMIN - DIAMETER) + YMIN + DIAMETER / 2 );
+            randomSide = true;
+          }
+          
+          let maxX = randomSide? ( XMAX/2 - DIAMETER): (XMAX -DIAMETER)
+          let minX = randomSide? ( XMIN - DIAMETER): (XMAX/2 - DIAMETER)
           if (x < NUM_HUMANS) {
             let probality = 0.3;
+            let side = !randomSide ? 'lefe': 'right';
             let behaviour = {
               type: "Normal",
               Interaction: "",
@@ -461,8 +525,10 @@ if (this.infected) {
               "Human" + x,
               loc,
               space,
-              probality,
-              behaviour
+              side,
+              behaviour,
+              maxX,
+              minX
             );
           } else if (x < NUM_HUMANS + NUM_GOODS) {
             agent = new Good("Good" + (x - NUM_HUMANS), loc, space);
@@ -497,6 +563,7 @@ if (this.infected) {
       space.render(canvas);
 
       drawBoard(canvas.getContext("2d"));
+      drawBoard2(canvas.getContext("2d"));
       //console.log('current simulation time: ' + scheduler.current_time);
 
       document.getElementById("infected_count").innerHTML = INFECTED_COUNT;
