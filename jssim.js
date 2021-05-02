@@ -473,6 +473,11 @@ var jssim = jssim || {};
     }
   };
 
+   
+  Space2D.prototype.getBins= function () {
+    return this.bins
+  };
+
   Space2D.prototype.getLocation = function (agentId) {
     return this.locations[agentId];
   };

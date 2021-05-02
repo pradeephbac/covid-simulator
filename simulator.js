@@ -7,7 +7,7 @@
 
   var bw = XMAX;
   var bh = YMAX;
-
+  var myChart = null
   var bins = new Map();
   for (let i = 0; i < 25; i++) {
     bins.set(i, 0);
@@ -298,7 +298,7 @@
       this.probabilityList.push(this.probability);
     }
     binUpdate(this.probability);
-
+    // drawGraph()
     this.steps--;
     if (this.desiredLocation == null || this.steps <= 0) {
       this.desiredLocation = new jssim.Vector2D(
@@ -424,6 +424,10 @@
 
     context.strokeStyle = "#cccccc";
     context.stroke();
+
+
+
+ 
   }
 
   var scheduler = new jssim.Scheduler();
@@ -434,14 +438,14 @@
     let index = Math.floor(probability / 0.04);
     bins.set(index, bins.get(index) + 1);
     //console.log("bin log  : index ", index);
+    
   }
 
   space.bins = bins;
 
   function reset() {
     scheduler.reset();
-    space.reset();
-
+    space.reset();  
     for (var x = 0; x < NUM_HUMANS + NUM_GOODS + NUM_EVILS; x++) {
       var dx = Math.floor(Math.random() * 10) - 5;
       var dy = Math.floor(Math.random() * 10) - 5;
@@ -483,30 +487,99 @@
       }
       scheduler.scheduleRepeatingIn(agent, 1);
     }
+    
   }
 
-  reset();
+  function drawGraph(ctx){ 
+    var labledArr = []
+    var dataArr= []
+ 
+    for (let i = 0; i < bins.size; i++) { 
+      labledArr.push(i)
+      dataArr.push(bins.get(i))
+    }
+     
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labledArr, //['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: 'infectious disribution',
+                data: dataArr, //[12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                "fillColor": "rgba(220,220,220,0.2)", 
+                borderWidth: 0.5,
+                fill: true,
+                lineTension: 0.8
+            }]
+        },
+        options: {
+          responsive: true,
+          line: {
+            tension: 100// disables bezier curves
+        },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+   
+  
+  }
 
-  var canvas = document.getElementById("myCanvas");
+  
+  
+  function clearCanvas(context, canvas) {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    var w = canvas.width;
+    canvas.width = 1;
+    canvas.width = w;
+  } 
 
-  setInterval(function () {
-    if (scheduler.current_time == 3000) {
+  reset(); 
+  var canvas = document.getElementById("myCanvas"); 
+  var ctx = document.getElementById('graph');
+  setInterval(function () { 
+
+    
+
+    if (scheduler.current_time == 3000) { 
       reset();
       INFECTED_COUNT = 0;
     }
-    scheduler.update();
-    space.render(canvas);
 
-    drawBoard(canvas.getContext("2d"));
-    //console.log('current simulation time: ' + scheduler.current_time);
 
-    document.getElementById("infected_count").innerHTML = INFECTED_COUNT;
-    document.getElementById("normal_count").innerHTML =
-      NUM_HUMANS - INFECTED_COUNT;
-    document.getElementById("simTime").value =
-      "Simulation Time: " + scheduler.current_time;
-    for (let i = 0; i < 25; i++) {
-      bins.set(i, 0);
+    if (scheduler.current_time % 50== 0) {  
+      if(myChart){ myChart.destroy() }
+      drawGraph(ctx) 
+      for (let i = 0; i < 25; i++) { bins.set(i, 0);  }
     }
+ 
+
+    scheduler.update();
+    space.render(canvas); 
+    drawBoard(canvas.getContext("2d")); 
+    document.getElementById("infected_count").innerHTML = INFECTED_COUNT;
+    document.getElementById("normal_count").innerHTML = NUM_HUMANS - INFECTED_COUNT;
+    document.getElementById("simTime").value = "Simulation Time: " + scheduler.current_time;
+    // for (let i = 0; i < 25; i++) { bins.set(i, 0);  }
+     
   }, 50);
 })();
