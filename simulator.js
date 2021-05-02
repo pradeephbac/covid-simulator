@@ -1,4 +1,10 @@
 (function () {
+
+  var INFECTED_PERSON_COUNT= 0;
+  var NOT_INFECTED_COUNT =0;
+  var EXPOSED_COUNT =0;
+
+
   //grid parameters
   var XMIN = 0;
   var XMAX = 1000;
@@ -344,17 +350,60 @@
   Human.prototype.draw = function (context, pos) {
     context.beginPath();
     context.arc(pos.x, pos.y, 60, 0, 2 * Math.PI);
-    context.stroke();
-
+    context.stroke(); 
     context.font = "12px serif";
-    if (this.probability > 0.8) context.strokeStyle = "#FF0000";
-    else if (this.probability > 0.6) context.strokeStyle = "#880000";
-    else if (this.probability > 0.4) context.strokeStyle = "#220000";
-    else context.strokeStyle = "#0000FF";
 
-    context.strokeText("infected", pos.x - 12, pos.y);
-    context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
-    context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+    // if (this.probability > 0.8) {
+    //   context.strokeStyle = "#FF0000"
+    //   context.strokeText("infected", pos.x - 12, pos.y);
+    //   context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+    //   context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+    //   INFECTED_PERSON_COUNT++
+    // }
+    // else if (this.probability > 0.6) {
+    //   context.strokeStyle = "#880000"
+    //   context.strokeText("Danger", pos.x - 12, pos.y);
+    //   context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+    //   context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+    //   EXPOSED_COUNT++
+    // }
+    // else if (this.probability > 0.4) {
+    //   context.strokeStyle = "#220000"
+    //   context.strokeText("possible", pos.x - 12, pos.y);
+    //   context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+    //   context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+    //   EXPOSED_COUNT++
+    // }
+    // else {
+    //   context.strokeStyle = "#0000FF";
+    //   context.strokeText("Not-infected", pos.x - 12, pos.y);
+    //   context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+    //   context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+    //   NOT_INFECTED_COUNT++
+    // }
+
+    if (this.probability >= 0.8) {
+      context.strokeStyle = "#FF0000"
+      context.strokeText("infected", pos.x - 12, pos.y);
+      context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+      context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+      INFECTED_PERSON_COUNT++
+    } 
+    else if (this.probability > 0.4 & this.probability < 0.8) {
+      context.strokeStyle = "#220000"
+      context.strokeText("exposed", pos.x - 12, pos.y);
+      context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+      context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+      EXPOSED_COUNT++
+    }
+    else {
+      context.strokeStyle = "#0000FF";
+      context.strokeText("Not-infected", pos.x - 12, pos.y);
+      context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
+      context.drawImage(healthy_icon, pos.x, pos.y, 20, 40);
+      NOT_INFECTED_COUNT++
+    }
+   
   };
 
   function distanceSquared(loc1, loc2) {
@@ -579,6 +628,12 @@
     document.getElementById("infected_count").innerHTML = INFECTED_COUNT;
     document.getElementById("normal_count").innerHTML = NUM_HUMANS - INFECTED_COUNT;
     document.getElementById("simTime").value = "Simulation Time: " + scheduler.current_time;
+   
+   
+   
+    // document.getElementById("infected_count").innerHTML = EXPOSED_COUNT;
+   
+   
     // for (let i = 0; i < 25; i++) { bins.set(i, 0);  }
      
   }, 50);
