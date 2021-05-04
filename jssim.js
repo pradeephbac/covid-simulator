@@ -464,9 +464,9 @@ var jssim = jssim || {};
     this.locations = [];
     this.agents = [];
     this.lines = [];
-    for (let i = 0; i < 25; i++) {
-      this.bins.set(i, 0);
-    }
+    // for (let i = 0; i < 25; i++) {
+    //   this.bins.set(i, 0);
+    // }
 
     if (this.network != null) {
       this.network.reset();
