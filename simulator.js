@@ -36,6 +36,14 @@
 
   var DIAMETER = 6;
 
+
+  var GRID_WIDTH =20
+  var HUMAN_WIDTH = 20
+  var HUMAN_HEGHT = 40
+  var ARC_DIAMETER= 60
+  document.getElementById("grid_width").innerHTML = GRID_WIDTH
+    document.getElementById("grid_height").innerHTML = GRID_WIDTH
+
   var HEALING_DISTANCE = 30;
 
   var HEALING_DISTANCE_SQUARED = HEALING_DISTANCE * HEALING_DISTANCE;
@@ -44,7 +52,55 @@
 
   var INFECTION_DISTANCE_SQUARED = INFECTION_DISTANCE * INFECTION_DISTANCE;
 
-  var NUM_HUMANS = 70;
+  var NUM_HUMANS = 10;
+  document.getElementById("normal_subject_count").innerHTML = NUM_HUMANS;
+
+  document.getElementById("plus_span").addEventListener('click', increaseHumans, false);
+  document.getElementById("minus_span").addEventListener('click', decreaseHumans, false);
+ 
+  function increaseHumans() {
+    NUM_HUMANS = NUM_HUMANS +1
+    document.getElementById("normal_subject_count").innerHTML = NUM_HUMANS;
+    reset()
+  }
+
+  function decreaseHumans() {
+    if (NUM_HUMANS > 2){
+      NUM_HUMANS = NUM_HUMANS - 1
+      document.getElementById("normal_subject_count").innerHTML = NUM_HUMANS;
+      reset()
+    }
+    
+   
+  }
+
+
+  
+  document.getElementById("downsize").addEventListener('click', downsize, false);
+  document.getElementById("upsize").addEventListener('click', upsize, false);
+ 
+  function downsize() {
+    GRID_WIDTH/=2
+    HUMAN_WIDTH/=2
+    HUMAN_HEGHT/=2
+    ARC_DIAMETER/=2
+    document.getElementById("grid_width").innerHTML = GRID_WIDTH
+    document.getElementById("grid_height").innerHTML = GRID_WIDTH
+    reset()
+  }
+
+  function upsize() { 
+    GRID_WIDTH*=2
+    HUMAN_WIDTH*=2
+    HUMAN_HEGHT*=2
+    ARC_DIAMETER*=2
+    document.getElementById("grid_width").innerHTML = GRID_WIDTH
+    document.getElementById("grid_height").innerHTML = GRID_WIDTH
+    reset()
+   
+  }
+
+
   var NUM_GOODS = 0;
   var NUM_EVILS = 0;
 
@@ -52,6 +108,7 @@
   good_icon.src = "images/good.png";
   var evil_icon = new Image();
   evil_icon.src = "images/virus.png";
+
 
   var Evil = function (id, loc, space) {
     jssim.SimEvent.call(this);
@@ -367,7 +424,7 @@
 
   Human.prototype.draw = function (context, pos) {
     context.beginPath();
-    context.arc(pos.x, pos.y, 60, 0, 2 * Math.PI);
+    context.arc(pos.x, pos.y, ARC_DIAMETER, 0, 2 * Math.PI);
     context.stroke();
     context.font = "12px serif";
 
@@ -404,17 +461,17 @@
       context.strokeStyle = "#FF0000";
       context.strokeText("infected", pos.x - 12, pos.y);
       context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
-      context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+      context.drawImage(infected_icon, pos.x, pos.y, HUMAN_WIDTH, HUMAN_HEGHT);
     } else if ((this.probability > 0.4) & (this.probability < 0.8)) {
       context.strokeStyle = "#220000";
       context.strokeText("exposed", pos.x - 12, pos.y);
       context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
-      context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
+      context.drawImage(infected_icon, pos.x, pos.y, HUMAN_WIDTH, HUMAN_HEGHT);
     } else {
       context.strokeStyle = "#0000FF";
       context.strokeText("Not-infected", pos.x - 12, pos.y);
       context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
-      context.drawImage(healthy_icon, pos.x, pos.y, 20, 40);
+      context.drawImage(healthy_icon, pos.x, pos.y, HUMAN_WIDTH, HUMAN_HEGHT);
     }
   };
 
@@ -473,12 +530,12 @@
   }
 
   function drawBoard(context) {
-    for (var x = 0; x <= bw; x += 20 * 3) {
+    for (var x = 0; x <= bw; x += GRID_WIDTH * 3) {
       context.moveTo(0.5 + x + p, p);
       context.lineTo(0.5 + x + p, bh + p);
     }
 
-    for (var x = 0; x <= bh; x += 20 * 3) {
+    for (var x = 0; x <= bh; x += GRID_WIDTH * 3) {
       context.moveTo(p, 0.5 + x + p);
       context.lineTo(bw + p, 0.5 + x + p);
     }
@@ -620,6 +677,7 @@
     });
   }
 
+
   function draw_subjects(ctx, iteration, exposed, infected, not_infected) {
     if (subjectChart) {
       subjectChart.destroy();
@@ -713,6 +771,13 @@
     canvas.width = w;
   }
 
+
+  
+  // var AddHumans = function() { 
+  //   NUM_HUMANS = NUM_HUMANS + 1
+  //   document.getElementById("normal_subject_count").innerHTML = NUM_HUMANS;
+  // }
+
   reset();
   var canvas = document.getElementById("myCanvas");
   var ctx = document.getElementById("graph");
@@ -759,7 +824,7 @@
     document.getElementById("infected_count").innerHTML = INFECTED_PERSON_COUNT;
     document.getElementById("exposed_count").innerHTML = EXPOSED_COUNT;
     document.getElementById("normal_count").innerHTML = NOT_INFECTED_COUNT;
-    document.getElementById("simTime").value =
+    document.getElementById("simTime").innerHTML =
       "Simulation Days: " + Math.floor(scheduler.current_time / 20);
 
     // document.getElementById("infected_count").innerHTML = EXPOSED_COUNT;
