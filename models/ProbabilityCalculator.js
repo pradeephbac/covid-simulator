@@ -49,5 +49,5 @@ ProbabilityCalculator.prototype.calculateInfectousIndividual = function (
 ProbabilityCalculator.prototype.calculateRecovery = function (probabilyEvent) {
   if (this.thresh > probabilyEvent) return 0.0;
 
-  return probabilyEvent * (1 - this.recoveryRate);
+  return probabilyEvent * this.recoveryRate;
 };

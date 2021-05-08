@@ -23,10 +23,16 @@ function Human(id, loc, space, probability, behaviour) {
   this.contactProbability = 0;
   this.behaviour = behaviour; //Obj
   this.probabilityList = []; //each probability will accumilate
+  this.infectionProbAmount = new Map();
+  this.infectionProbAmount.set(-100, probability);
   this.probabilityList.push(probability);
   this.contactList = new Map();
   this.mInfectiousParam = new InfectiousParam(20); // obj
-  this.mProbabilityCalculator = new ProbabilityCalculator("normal", 0.01, 0.05);
+  this.mProbabilityCalculator = new ProbabilityCalculator(
+    "normal",
+    0.015,
+    0.98
+  );
 }
 
 Human.prototype.setContactProbability = function (probability) {
@@ -104,7 +110,29 @@ Human.prototype.setContacts = function (timestamp, mysteriousObjects) {
 };
 
 Human.prototype.calcDecayingProbability = function (deltaTime) {
-  return 0.0;
+  let value = 0.0;
+  latentValue = deltaTime - this.mInfectiousParam.getLatentPeriod();
+  pastDaysMax = deltaTime - this.mInfectiousParam.mTicksPerDay * 5;
+  pastDaysMin = deltaTime - this.mInfectiousParam.mTicksPerDay * 14;
+
+  /*for (let i = pastDays; i < latentValue; i++) {
+    if (this.contactList.has(i)) {
+      element = this.contactList.get(i);
+      value =
+        value +
+        this.mProbabilityCalculator.calculateRecovery(this.probabilityList[i]);
+    }
+  }*/
+  for (let i = pastDaysMin; i < pastDaysMax; i++) {
+    if (this.infectionProbAmount.has(i)) {
+      current = this.infectionProbAmount.get(i);
+      temp = this.mProbabilityCalculator.calculateRecovery(current);
+      this.infectionProbAmount.set(i, temp);
+
+      value = value + (current - temp);
+    }
+  }
+  return value;
 };
 
 Human.prototype.calculateLatentProb = function (timestamp) {
