@@ -1,13 +1,14 @@
 (function () {
   var ITERATION = 0;
-  var INFECTED_PERSON_COUNT= 0;
-  var NOT_INFECTED_COUNT =0;
-  var EXPOSED_COUNT =0;
+  var INFECTED_PERSON_COUNT = 0;
+  var NOT_INFECTED_COUNT = 0;
+  var EXPOSED_COUNT = 0;
 
-  var CUMELATIVE_INFECTED_PERSON_COUNT= [];
-  var CUMELATIVE_NOT_INFECTED_COUNT =[];
-  var CUMELATIVE_EXPOSED_COUNT =[]; 
-var CUMELATIVE_ITERATION =[]
+  var CUMELATIVE_INFECTED_PERSON_COUNT = [];
+  var CUMELATIVE_NOT_INFECTED_COUNT = [];
+  var CUMELATIVE_EXPOSED_COUNT = [];
+  var CUMELATIVE_ITERATION = [];
+  var FULL_AXIS = new Array(3000).fill(0);
   //grid parameters
   var XMIN = 0;
   var XMAX = 1000;
@@ -16,8 +17,8 @@ var CUMELATIVE_ITERATION =[]
 
   var bw = XMAX;
   var bh = YMAX;
-  var myChart = null
-  var subjectChart = null
+  var myChart = null;
+  var subjectChart = null;
   var bins = new Map();
   for (let i = 0; i < 25; i++) {
     bins.set(i, 0);
@@ -43,7 +44,7 @@ var CUMELATIVE_ITERATION =[]
 
   var INFECTION_DISTANCE_SQUARED = INFECTION_DISTANCE * INFECTION_DISTANCE;
 
-  var NUM_HUMANS = 20;
+  var NUM_HUMANS = 70;
   var NUM_GOODS = 0;
   var NUM_EVILS = 0;
 
@@ -302,9 +303,22 @@ var CUMELATIVE_ITERATION =[]
       prob = this.calculateLatentProb(deltaTime);
 
       // healing probability;
+
       decay_prob = this.calcDecayingProbability(deltaTime);
       //console.log(prob);
       this.probability += prob - decay_prob;
+      if (this.probability > 0.99) {
+        this.probability = 0.99;
+      }
+      if (this.probability < 0.01) {
+        this.probability = 0.01;
+      }
+      calc =
+        this.probability -
+        this.probabilityList[this.probabilityList.length - 1];
+      calc = calc > 0 ? calc : 0;
+
+      this.infectionProbAmount.set(deltaTime, calc);
       this.probabilityList.push(this.probability);
     }
     binUpdate(this.probability);
@@ -354,7 +368,7 @@ var CUMELATIVE_ITERATION =[]
   Human.prototype.draw = function (context, pos) {
     context.beginPath();
     context.arc(pos.x, pos.y, 60, 0, 2 * Math.PI);
-    context.stroke(); 
+    context.stroke();
     context.font = "12px serif";
 
     // if (this.probability > 0.8) {
@@ -387,30 +401,21 @@ var CUMELATIVE_ITERATION =[]
     // }
 
     if (this.probability >= 0.8) {
-      context.strokeStyle = "#FF0000"
+      context.strokeStyle = "#FF0000";
       context.strokeText("infected", pos.x - 12, pos.y);
       context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
       context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
-     
-    } 
-    else if (this.probability > 0.4 & this.probability < 0.8) {
-      context.strokeStyle = "#220000"
+    } else if ((this.probability > 0.4) & (this.probability < 0.8)) {
+      context.strokeStyle = "#220000";
       context.strokeText("exposed", pos.x - 12, pos.y);
       context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
       context.drawImage(infected_icon, pos.x, pos.y, 20, 40);
-     
-    }
-    else {
+    } else {
       context.strokeStyle = "#0000FF";
       context.strokeText("Not-infected", pos.x - 12, pos.y);
       context.strokeText(this.probability.toFixed(2), pos.x - 12, pos.y - 10);
       context.drawImage(healthy_icon, pos.x, pos.y, 20, 40);
-      
     }
-
-
-     
-   
   };
 
   function distanceSquared(loc1, loc2) {
@@ -481,32 +486,22 @@ var CUMELATIVE_ITERATION =[]
     context.strokeStyle = "#cccccc";
     context.stroke();
 
-    INFECTED_PERSON_COUNT =0
-    EXPOSED_COUNT=0
-    NOT_INFECTED_COUNT = 0
-    let agent_arr = space.findAllAgents()
-    let key_arr = Object. keys(space.findAllAgents());
+    INFECTED_PERSON_COUNT = 0;
+    EXPOSED_COUNT = 0;
+    NOT_INFECTED_COUNT = 0;
+    let agent_arr = space.findAllAgents();
+    let key_arr = Object.keys(space.findAllAgents());
     for (let i = 0; i < key_arr.length; i++) {
-      let key = key_arr[i]
+      let key = key_arr[i];
       let probability = space.findAllAgents()[key].probability;
-      if (probability >= 0.8) { 
-        INFECTED_PERSON_COUNT++
-      } 
-      else if (probability > 0.4 & probability < 0.8) { 
-        EXPOSED_COUNT++
-      }
-      else { 
-        NOT_INFECTED_COUNT++
+      if (probability >= 0.8) {
+        INFECTED_PERSON_COUNT++;
+      } else if ((probability > 0.4) & (probability < 0.8)) {
+        EXPOSED_COUNT++;
+      } else {
+        NOT_INFECTED_COUNT++;
       }
     }
-
-
-
-
-
- 
-
- 
   }
 
   var scheduler = new jssim.Scheduler();
@@ -517,14 +512,13 @@ var CUMELATIVE_ITERATION =[]
     let index = Math.floor(probability / 0.04);
     bins.set(index, bins.get(index) + 1);
     //console.log("bin log  : index ", index);
-    
   }
 
   space.bins = bins;
 
   function reset() {
     scheduler.reset();
-    space.reset();  
+    space.reset();
     for (var x = 0; x < NUM_HUMANS + NUM_GOODS + NUM_EVILS; x++) {
       var dx = Math.floor(Math.random() * 10) - 5;
       var dy = Math.floor(Math.random() * 10) - 5;
@@ -566,178 +560,211 @@ var CUMELATIVE_ITERATION =[]
       }
       scheduler.scheduleRepeatingIn(agent, 1);
     }
-    
   }
 
-  function drawGraph(ctx){ 
-    var labledArr = []
-    var dataArr= [] 
- 
-    for (let i = 0; i < bins.size; i++) { 
-      labledArr.push(i)
-      dataArr.push(bins.get(i)) 
+  function drawGraph(ctx) {
+    var labledArr = [];
+    var dataArr = [];
+
+    for (let i = 0; i < bins.size; i++) {
+      labledArr.push((i * 0.04 + 0.02).toPrecision(2));
+      dataArr.push(bins.get(i));
     }
 
     myChart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: {
-          labels: labledArr, //['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-          datasets: [{
-              label: 'infectious disribution',
-              data: dataArr, //[12, 19, 3, 5, 2, 3],
-              backgroundColor: [
-                  'rgba(255, 99, 132, 0.2)',
-                  'rgba(54, 162, 235, 0.2)',
-                  'rgba(255, 206, 86, 0.2)',
-                  'rgba(75, 192, 192, 0.2)',
-                  'rgba(153, 102, 255, 0.2)',
-                  'rgba(255, 159, 64, 0.2)'
-              ],
-              borderColor: [
-                  'rgba(255, 99, 132, 1)',
-                  'rgba(54, 162, 235, 1)',
-                  'rgba(255, 206, 86, 1)',
-                  'rgba(75, 192, 192, 1)',
-                  'rgba(153, 102, 255, 1)',
-                  'rgba(255, 159, 64, 1)'
-              ],
-              "fillColor": "rgba(220,220,220,0.2)", 
-              borderWidth: 0.5,
-              fill: true,
-              bezierCurve: true,
-              lineTension: 0
-          }]
+        labels: labledArr, //['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [
+          {
+            label: "infectious distribution",
+            data: dataArr, //[12, 19, 3, 5, 2, 3],
+            backgroundColor: [
+              "rgba(255, 99, 132, 0.2)",
+              "rgba(54, 162, 235, 0.2)",
+              "rgba(255, 206, 86, 0.2)",
+              "rgba(75, 192, 192, 0.2)",
+              "rgba(153, 102, 255, 0.2)",
+              "rgba(255, 159, 64, 0.2)",
+            ],
+            borderColor: [
+              "rgba(255, 99, 132, 1)",
+              "rgba(54, 162, 235, 1)",
+              "rgba(255, 206, 86, 1)",
+              "rgba(75, 192, 192, 1)",
+              "rgba(153, 102, 255, 1)",
+              "rgba(255, 159, 64, 1)",
+            ],
+            pointRadius: 0,
+            fillColor: "rgba(220,220,220,0.2)",
+            borderWidth: 0.5,
+            fill: true,
+            bezierCurve: true,
+            lineTension: 0.4,
+          },
+        ],
       },
       options: {
+        animation: false,
         responsive: true,
         line: {
-          tension: 100// disables bezier curves
+          tension: 0.1, // disables bezier curves
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: NUM_HUMANS,
+          },
+        },
       },
-          scales: {
-              y: {
-                  beginAtZero: true
-              }
-          }
-      }
-  });
- 
+    });
   }
 
-
-  function draw_subjects(ctx, iteration, exposed, infected, not_infected){
-    
-    if(subjectChart){ subjectChart.destroy() }
+  function draw_subjects(ctx, iteration, exposed, infected, not_infected) {
+    if (subjectChart) {
+      subjectChart.destroy();
+    }
 
     subjectChart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: {
-          labels: iteration,  
-          datasets: [
-            {
-              label: "exposed",
-              //fill:false,
-              // fillColor: "rgba(0,0,0,0)",
-              // strokeColor: "rgba(220,220,220,1)",
-              // pointColor: "rgba(200,122,20,1)",
-              bezierCurve: true,
-              lineTension: 0.8,borderWidth: 2,
-              scaleFontSize:16,
-              borderWidth: 5,
-              data: exposed
-           },
-           {
-              label: "infected",
-              // fillColor: 'rgba(0,0,0,0)',
-              // strokeColor: 'rgba(220,180,0,1)',
-              // pointColor: 'rgba(220,180,0,1)',
-              bezierCurve: true,
-              lineTension: 0.8,borderWidth: 2,
-              scaleFontSize:16,
-              borderWidth: 5,
-              data: infected
-           },{
+        labels: iteration,
+        datasets: [
+          {
+            label: "exposed",
+            //fill:false,
+            fillColor: "rgba(75, 192, 192)",
+            strokeColor: "rgba(220,220,0,1)",
+            // pointColor: "rgba(200,122,20,1)",
+            pointRadius: 1,
+            borderColor: "rgb(75, 192, 192)",
+            bezierCurve: true,
+            lineTension: 0.8,
+            scaleFontSize: 16,
+            borderWidth: 1,
+            data: exposed,
+          },
+          {
+            label: "infected",
+            // fillColor: 'rgba(0,0,0,0)',
+            // strokeColor: 'rgba(220,180,0,1)',
+            // pointColor: 'rgba(220,180,0,1)',
+            //strokeColor: "red",
+            pointRadius: 1,
+            borderColor: "rgb(175, 0, 0)",
+            bezierCurve: true,
+            lineTension: 0.8,
+            scaleFontSize: 16,
+            borderWidth: 1,
+            data: infected,
+          },
+          {
             label: "not-infected",
             //fill:false,
             // fillColor: "rgba(0,0,0,0)",
-            // strokeColor: "black",
+            //strokeColor: "black",
             // pointColor: "rgba(200,122,20,1)",
-            bezierCurve: true,borderWidth: 2,
+            pointRadius: 1,
+            borderColor: "rgb(0,175, 0)",
+            bezierCurve: true,
             lineTension: 0.8,
-            scaleFontSize:16,
-            borderWidth: 5,
-            data: not_infected
-         }, ]
-      } 
-  });
-                    subjectChart.animationSteps = 50;
-                    subjectChart.tooltipYPadding = 16;
-                    // subjectChart.tooltipCornerRadius = 0;
-                    subjectChart.tooltipTitleFontStyle = "normal";
-                    // subjectChart.tooltipFillColor = "rgba(0,160,0,0.8)";
-                    subjectChart.animationEasing = "easeOutBounce";
-                    subjectChart.responsive = true;
-                    subjectChart.scaleLineColor = "black";
-                    subjectChart.scaleFontSize = 16;
+            scaleFontSize: 16,
+            borderWidth: 1,
+            data: not_infected,
+          },
+        ],
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        line: {
+          tension: 00, // disables bezier curves
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: NUM_HUMANS,
+          },
+          x: {
+            beginAtZero: true,
+            max: 3000,
+            bounds: "ticks",
+          },
+        },
+      },
+    });
+
+    subjectChart.animationSteps = 50;
+    subjectChart.tooltipYPadding = 16;
+    // subjectChart.tooltipCornerRadius = 0;
+    subjectChart.tooltipTitleFontStyle = "normal";
+    // subjectChart.tooltipFillColor = "rgba(0,160,0,0.8)";
+    subjectChart.animationEasing = "easeOutBounce";
+    subjectChart.duration = 50;
+    subjectChart.responsive = true;
+    subjectChart.scaleLineColor = "black";
+    subjectChart.scaleFontSize = 16;
   }
 
-  
-  
   function clearCanvas(context, canvas) {
     context.clearRect(0, 0, canvas.width, canvas.height);
     var w = canvas.width;
     canvas.width = 1;
     canvas.width = w;
-  } 
+  }
 
-  reset(); 
-  var canvas = document.getElementById("myCanvas"); 
-  var ctx = document.getElementById('graph');
-  var subject_ctx = document.getElementById('subjectgraph');
-  setInterval(function () { 
-
-    
-
-    if (scheduler.current_time == 3000) { 
+  reset();
+  var canvas = document.getElementById("myCanvas");
+  var ctx = document.getElementById("graph");
+  var subject_ctx = document.getElementById("subjectgraph");
+  setInterval(function () {
+    if (scheduler.current_time == 3000) {
       reset();
-      INFECTED_COUNT = 0; 
-      ITERATION = 0
-      CUMELATIVE_EXPOSED_COUNT = []
-      CUMELATIVE_INFECTED_PERSON_COUNT= []
-      CUMELATIVE_NOT_INFECTED_COUNT = []
-      CUMELATIVE_ITERATION = []
+      INFECTED_COUNT = 0;
+      ITERATION = 0;
+      CUMELATIVE_EXPOSED_COUNT = [];
+      CUMELATIVE_INFECTED_PERSON_COUNT = [];
+      CUMELATIVE_NOT_INFECTED_COUNT = [];
+      CUMELATIVE_ITERATION = [];
     }
 
+    if (scheduler.current_time % 10 == 0) {
+      if (myChart) {
+        myChart.destroy();
+      }
+      drawGraph(ctx);
+      //for (let i = 0; i < 25; i++) {
+      //  bins.set(i, 0);
+      //}
 
-    if (scheduler.current_time % 50== 0) {  
-      if(myChart){ myChart.destroy() }
-      drawGraph(ctx) 
-      for (let i = 0; i < 25; i++) { bins.set(i, 0);  }
-
-
-
-
-      CUMELATIVE_EXPOSED_COUNT.push(EXPOSED_COUNT)
-      CUMELATIVE_INFECTED_PERSON_COUNT.push(INFECTED_PERSON_COUNT)
-      CUMELATIVE_NOT_INFECTED_COUNT.push(NOT_INFECTED_COUNT)
-      CUMELATIVE_ITERATION.push(ITERATION)
-      draw_subjects(subject_ctx,CUMELATIVE_ITERATION, CUMELATIVE_EXPOSED_COUNT, CUMELATIVE_INFECTED_PERSON_COUNT, CUMELATIVE_NOT_INFECTED_COUNT)
-     
+      CUMELATIVE_EXPOSED_COUNT.push(EXPOSED_COUNT);
+      CUMELATIVE_INFECTED_PERSON_COUNT.push(INFECTED_PERSON_COUNT);
+      CUMELATIVE_NOT_INFECTED_COUNT.push(NOT_INFECTED_COUNT);
+      CUMELATIVE_ITERATION.push(ITERATION);
+      draw_subjects(
+        subject_ctx,
+        CUMELATIVE_ITERATION,
+        CUMELATIVE_EXPOSED_COUNT,
+        CUMELATIVE_INFECTED_PERSON_COUNT,
+        CUMELATIVE_NOT_INFECTED_COUNT
+      );
     }
- 
+    for (let i = 0; i < 25; i++) {
+      bins.set(i, 0);
+    }
 
     scheduler.update();
-    space.render(canvas); 
-    drawBoard(canvas.getContext("2d")); 
-    document.getElementById("infected_count").innerHTML = INFECTED_COUNT;
+    space.render(canvas);
+    drawBoard(canvas.getContext("2d"));
+    document.getElementById("infected_count").innerHTML = INFECTED_PERSON_COUNT;
     document.getElementById("exposed_count").innerHTML = EXPOSED_COUNT;
     document.getElementById("normal_count").innerHTML = NOT_INFECTED_COUNT;
-    document.getElementById("simTime").value = "Simulation Time: " + scheduler.current_time;
-   
+    document.getElementById("simTime").value =
+      "Simulation Days: " + Math.floor(scheduler.current_time / 20);
 
     // document.getElementById("infected_count").innerHTML = EXPOSED_COUNT;
-   
-   
+
     // for (let i = 0; i < 25; i++) { bins.set(i, 0);  }
-    ITERATION++
+    ITERATION++;
   }, 50);
 })();

@@ -28,11 +28,7 @@ function Human(id, loc, space, probability, behaviour) {
   this.probabilityList.push(probability);
   this.contactList = new Map();
   this.mInfectiousParam = new InfectiousParam(20); // obj
-  this.mProbabilityCalculator = new ProbabilityCalculator(
-    "normal",
-    0.015,
-    0.98
-  );
+  this.mProbabilityCalculator = new ProbabilityCalculator("normal", 0.02, 0.98);
 }
 
 Human.prototype.setContactProbability = function (probability) {
